@@ -53,6 +53,8 @@ export const availableAPIs: IStringKeyMap = {
 
 // official API 可用的模型
 export const availableModels: string[] = [
+  'gpt-5.4',
+  'gpt-5.3-instant',
   'gpt-5.2',
   'gpt-5.1',
   'gpt-5.1-mini',
@@ -63,20 +65,22 @@ export const availableModels: string[] = [
   'gpt-4.1-mini',
   'gpt-4.1-nano',
   'gpt-4o',
-  'o1',
+  'o4-mini',
   'o3',
+  'o3-mini',
+  'o1',
 ]
 
 // Gemini API 可用的模型
 export const availableModelsForGemini: string[] = [
-  'gemini-3-pro-preview',
+  'gemini-3.1-pro-preview',
+  'gemini-3.1-flash-lite-preview',
   'gemini-3-flash-preview',
   'gemini-2.5-pro',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
   'gemini-2.0-flash',
   'gemini-2.0-flash-lite',
-  'aqa',
 ]
 
 // Ollama API 可用的模型

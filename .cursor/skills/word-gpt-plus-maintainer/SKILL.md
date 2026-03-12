@@ -107,6 +107,16 @@ For Word add-in runtime or install changes, also verify:
 - After restarting the dev server, click "重新加载" (Reload) in the Word add-in panel to pick up the changes
 - `yarn` is not installed globally; use `npx` commands instead
 
+## UI / Style Conventions
+
+- **No shadows on interactive controls.** Buttons, dropdown triggers, and menu panels rely on `border` for visual separation — do not add `shadow-*` utilities.
+- **Unified control height `h-8` (32px).** All primary form controls — `CustomButton`, `CustomInput`, `SingleSelect` trigger — use `h-8`. Square icon-only buttons (e.g. Send, Stop, mode toggles) keep `h-7 w-7`.
+- **Dropdown triggers** use the semantic tokens `bg-dropdown-trigger-bg` and `text-dropdown-trigger-text` (defined in `src/index.css`) so they adapt to both light and dark themes automatically.
+- **Dropdown panels** use `bg-bg-tertiary` with `border-border-secondary`.
+- **Avoid `!important` overrides on component call sites.** Using `bg-surface!` or similar at the call site breaks the component's own hover/focus/active states. If a component needs a visual variant, add it as a prop or `type` inside the component instead. If an `!important` override is truly necessary, ensure the component's interactive states also use `!important`.
+- **Secondary button hover = accent (blue).** `CustomButton` type `secondary` hovers to `bg-accent/10!` background + `text-accent!` text/icon. Do not change hover to white.
+- When introducing new theme-aware colors, add CSS custom properties to both the light (`:root`) and dark (`.dark`) blocks in `src/index.css`, then register them in the `@theme` block.
+
 ## Review Standard
 
 When reviewing changes in this repo, prioritize:

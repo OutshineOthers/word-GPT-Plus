@@ -17,15 +17,14 @@
       <div class="flex justify-between rounded-sm p-1.5">
         <div class="flex flex-1 items-center gap-2 text-accent">
           <Sparkles :size="18" />
-          <span class="text-sm font-semibold text-main">Word GPT+</span>
+          <span class="text-sm font-semibold text-main">WORD-灵核</span>
         </div>
-        <div class="flex items-center gap-1 rounded-md border border-accent/10">
+        <div class="flex items-center gap-1">
           <CustomButton
             :title="t('newChat')"
             :icon="Plus"
             text=""
             type="secondary"
-            class="border-none p-1!"
             :icon-size="18"
             @click="onNewChat"
           />
@@ -34,7 +33,6 @@
             :icon="Settings"
             text=""
             type="secondary"
-            class="border-none p-1!"
             :icon-size="18"
             @click="goToSettings"
           />
@@ -43,9 +41,16 @@
             :icon="History"
             text=""
             type="secondary"
-            class="border-none p-1!"
             :icon-size="18"
             @click="showCheckpoints = true"
+          />
+          <CustomButton
+            :title="isDark ? t('themeLight') : t('themeDark')"
+            :icon="isDark ? Sun : Moon"
+            text=""
+            type="secondary"
+            :icon-size="18"
+            @click="toggleTheme"
           />
         </div>
       </div>
@@ -258,12 +263,14 @@ import {
   Globe,
   History,
   MessageSquare,
+  Moon,
   Plus,
   Send,
   Settings,
   Sparkle,
   Sparkles,
   Square,
+  Sun,
 } from 'lucide-vue-next'
 import { computed, nextTick, onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -275,6 +282,7 @@ import CustomButton from '@/components/CustomButton.vue'
 import SingleSelect from '@/components/SingleSelect.vue'
 import { cleanMessageText, renderSegments } from '@/composables'
 import { buildProviderConfig } from '@/composables/useProviderConfig'
+import { applyTheme, type ThemeValue } from '@/composables/useTheme'
 import CheckPointsPage from '@/pages/checkPointsPage.vue'
 import { usePromptStore, useSessionStore, useToolPrefsStore } from '@/stores'
 import { checkAuth } from '@/utils/common'
@@ -304,6 +312,16 @@ const inputTextarea = ref<HTMLTextAreaElement>()
 const useWordFormatting = ref(localStorage.getItem(localStorageKey.useWordFormatting) !== 'false')
 const useSelectedText = ref(localStorage.getItem(localStorageKey.useSelectedText) !== 'false')
 const insertType = ref<insertTypes>('replace')
+
+const isDark = ref(document.documentElement.getAttribute('data-theme') === 'dark')
+
+function toggleTheme() {
+  const next: ThemeValue = isDark.value ? 'light' : 'dark'
+  isDark.value = next === 'dark'
+  localStorage.setItem(localStorageKey.theme, next)
+  applyTheme(next)
+  settingForm.value.theme = next
+}
 
 watch(useWordFormatting, v => localStorage.setItem(localStorageKey.useWordFormatting, String(v)))
 watch(useSelectedText, v => localStorage.setItem(localStorageKey.useSelectedText, String(v)))
