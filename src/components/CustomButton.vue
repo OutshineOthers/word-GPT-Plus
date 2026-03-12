@@ -1,7 +1,7 @@
 <template>
   <button
     :disabled="disabled"
-    class="group flex min-w-fit cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-fast ease-apple not-disabled:hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+    class="group flex min-w-fit cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-fast ease-apple not-disabled:hover:border-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
     :class="classVar"
     :title="title || undefined"
     :data-active="active"

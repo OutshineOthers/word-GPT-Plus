@@ -1,9 +1,9 @@
 <template>
   <div class="relative flex h-full w-full items-center justify-center bg-bg-secondary">
     <!-- Header with back button -->
-    <div class="relative z-1 flex h-full w-full flex-col items-center justify-start gap-2 rounded-xl border-none p-2">
+    <div class="relative z-1 flex h-full w-full flex-col items-center justify-start gap-2 rounded-lg border-none p-2">
       <div
-        class="flex w-full items-center justify-between gap-1 overflow-visible rounded-2xl border border-border-secondary p-0 shadow-sm"
+        class="flex w-full items-center justify-between gap-1 overflow-visible rounded-md border border-border-secondary p-0"
       >
         <div class="flex flex-wrap items-center gap-4 p-1">
           <CustomButton
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Tab Navigation -->
-      <div class="flex w-full justify-between rounded-2xl border border-border-secondary p-0">
+      <div class="flex w-full justify-between rounded-md border border-border-secondary p-0">
         <CustomButton
           v-for="tab in tabs"
           :key="tab.id"
@@ -39,7 +39,7 @@
 
       <!-- Main Content -->
       <div class="w-full flex-1 overflow-hidden">
-        <div class="no-scrollbar h-full w-full overflow-auto rounded-md shadow-md">
+        <div class="no-scrollbar h-full w-full overflow-auto rounded-md border border-border">
           <!-- General Settings -->
           <div
             v-show="currentTab === 'general'"
@@ -220,7 +220,7 @@
           >
             <!-- Prompt List -->
             <div
-              class="flex h-full w-full flex-col gap-2 overflow-auto rounded-md border border-border-secondary p-2 shadow-sm"
+              class="flex h-full w-full flex-col gap-2 overflow-auto rounded-md border border-border-secondary p-2"
             >
               <div class="flex items-center justify-between">
                 <h3 class="text-center text-sm font-semibold text-main">
@@ -314,14 +314,14 @@
           >
             <!-- Word Tools Section -->
             <div
-              class="flex h-full w-full flex-col gap-2 overflow-auto rounded-md border border-border-secondary p-2 shadow-sm"
+              class="flex h-full w-full flex-col gap-2 overflow-auto rounded-md border border-border-secondary p-2"
             >
-              <div class="rounded-md border border-border-secondary p-1 shadow-sm">
+              <div class="rounded-md border border-border-secondary p-1">
                 <h3 class="text-center text-sm font-semibold text-accent/70">
                   {{ t('wordTools') }}
                 </h3>
               </div>
-              <div class="rounded-md border border-border-secondary p-1 shadow-sm">
+              <div class="rounded-md border border-border-secondary p-1">
                 <p class="bord text-xs leading-normal font-medium wrap-break-word text-secondary">
                   {{ t('wordToolsDescription') }}
                 </p>
@@ -358,14 +358,14 @@
             class="flex w-full flex-1 items-center gap-2 overflow-hidden bg-bg-secondary p-1"
           >
             <div
-              class="flex h-full w-full flex-col gap-2 overflow-auto rounded-md border border-border-secondary p-2 shadow-sm"
+              class="flex h-full w-full flex-col gap-2 overflow-auto rounded-md border border-border-secondary p-2"
             >
-              <div class="rounded-md border border-border-secondary p-1 shadow-sm">
+              <div class="rounded-md border border-border-secondary p-1">
                 <h3 class="text-center text-sm font-semibold text-accent/70">
                   {{ t('builtinPrompts') || 'Built-in Prompts' }}
                 </h3>
               </div>
-              <div class="rounded-md border border-border-secondary p-1 shadow-sm">
+              <div class="rounded-md border border-border-secondary p-1">
                 <p class="bord text-xs leading-normal font-medium wrap-break-word text-secondary">
                   {{
                     t('builtinPromptsDescription', {

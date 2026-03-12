@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full w-full flex-col gap-2 overflow-hidden bg-bg-secondary p-2">
     <div
-      class="flex shrink-0 items-center gap-2.5 rounded-md border-b border-b-border bg-bg-secondary px-4 py-2 shadow-sm"
+      class="flex shrink-0 items-center gap-2.5 rounded-md border-b border-b-border bg-bg-secondary px-4 py-2"
     >
       <CustomButton text="" :icon="ArrowLeft" type="secondary" class="border-none p-1!" @click="backToHome" />
       <h2 class="text-sm font-semibold text-main">
@@ -10,7 +10,7 @@
     </div>
 
     <div
-      class="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-md border border-border bg-bg-secondary shadow-sm"
+      class="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-md border border-border bg-bg-secondary"
     >
       <div v-if="loading" class="flex h-full w-full items-center justify-center">
         <div class="flex flex-col items-center gap-2">
@@ -27,7 +27,7 @@
           <div
             v-for="item in sessionItems"
             :key="item.threadId"
-            class="flex cursor-pointer flex-col gap-2 rounded-md border border-border-secondary bg-surface p-2 shadow-sm hover:border-2 hover:border-accent"
+            class="flex cursor-pointer flex-col gap-2 rounded-md border border-border-secondary bg-surface p-2 hover:border-2 hover:border-accent"
             @click="handleSelectSession(item.threadId)"
           >
             <div

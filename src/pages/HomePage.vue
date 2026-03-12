@@ -12,9 +12,9 @@
     v-show="!showCheckpoints"
     class="itemse-center relative flex h-full w-full flex-col justify-center bg-bg-secondary p-1"
   >
-    <div class="relative flex h-full w-full flex-col gap-1 rounded-md">
+    <div class="relative flex h-full w-full flex-col gap-2 rounded-md">
       <!-- Header -->
-      <div class="flex justify-between rounded-sm p-1">
+      <div class="flex justify-between rounded-sm p-1.5">
         <div class="flex flex-1 items-center gap-2 text-accent">
           <Sparkles :size="18" />
           <span class="text-sm font-semibold text-main">Word GPT+</span>
@@ -51,7 +51,7 @@
       </div>
 
       <!-- Quick Actions Bar -->
-      <div class="flex w-full items-center justify-center gap-2 overflow-hidden rounded-md">
+      <div class="flex w-full items-center justify-center gap-2 overflow-visible rounded-md py-1">
         <CustomButton
           v-for="action in quickActions"
           :key="action.key"
@@ -82,7 +82,7 @@
       <!-- Chat Messages Container -->
       <div
         ref="messagesContainer"
-        class="flex flex-1 flex-col gap-4 overflow-y-auto rounded-md border border-border-secondary bg-surface p-2 shadow-sm"
+        class="flex flex-1 flex-col gap-4 overflow-y-auto rounded-md border border-border-secondary bg-surface p-2"
       >
         <div
           v-if="session.history.length === 0"
@@ -107,7 +107,7 @@
             class="flex min-w-0 flex-1 flex-col gap-1 group-[.assistant]:items-start group-[.assistant]:text-left group-[.user]:items-end group-[.user]:text-left"
           >
             <div
-              class="group max-w-[95%] rounded-md border border-border-secondary p-1 text-sm leading-[1.4] wrap-break-word whitespace-pre-wrap text-main/90 shadow-sm group-[.assistant]:bg-bg-tertiary group-[.assistant]:text-left group-[.user]:bg-accent/10"
+              class="group max-w-[95%] rounded-md border border-border-secondary p-1 text-sm leading-[1.4] wrap-break-word whitespace-pre-wrap text-main/90 group-[.assistant]:bg-bg-tertiary group-[.assistant]:text-left group-[.user]:bg-accent/10"
             >
               <template v-for="(segment, idx) in renderSegments(msg)" :key="idx">
                 <span v-if="segment.type === 'text'">{{ segment.text.trim() }}</span>
@@ -155,7 +155,7 @@
       </div>
 
       <!-- Input Area -->
-      <div class="flex flex-col gap-1 rounded-md">
+      <div class="flex flex-col gap-2 rounded-md">
         <div class="flex items-center justify-between gap-2 overflow-hidden">
           <div class="flex shrink-0 gap-1 rounded-sm border border-border bg-surface p-0.5">
             <button
@@ -175,24 +175,30 @@
               <BotMessageSquare :size="17" />
             </button>
           </div>
-          <div class="flex min-w-0 flex-1 gap-1 overflow-hidden">
-            <select
+          <div class="flex min-w-0 flex-1 gap-1 overflow-visible">
+            <SingleSelect
               v-model="settingForm.api"
-              class="h-7 max-w-full min-w-0 cursor-pointer rounded-md border border-border bg-surface p-1 text-xs text-secondary hover:border-accent focus:outline-none disabled:cursor-not-allowed disabled:bg-secondary"
+              :key-list="settingPreset.api.optionObj.map(item => item.value)"
+              title=""
+              :tight="true"
+              :fronticon="false"
+              :placeholder="settingPreset.api.optionObj.find(option => option.value === settingForm.api)?.label.replace('official', 'OpenAI') || settingForm.api"
+              class="min-w-0 flex-1"
             >
-              <option v-for="item in settingPreset.api.optionObj" :key="item.value" :value="item.value">
-                {{ item.label.replace('official', 'OpenAI') }}
-              </option>
-            </select>
-            <select
+              <template #item="{ item }">
+                {{ settingPreset.api.optionObj.find(option => option.value === item)?.label.replace('official', 'OpenAI') || item }}
+              </template>
+            </SingleSelect>
+            <SingleSelect
               v-if="currentModelOptions && currentModelOptions.length > 0"
               v-model="currentModelSelect"
-              class="h-7 max-w-full min-w-0 cursor-pointer rounded-md border border-border bg-surface p-1 text-xs text-secondary hover:border-accent focus:outline-none"
-            >
-              <option v-for="item in currentModelOptions" :key="item" :value="item">
-                {{ item }}
-              </option>
-            </select>
+              :key-list="currentModelOptions"
+              title=""
+              :tight="true"
+              :fronticon="false"
+              :placeholder="currentModelSelect"
+              class="min-w-0 flex-1"
+            />
           </div>
         </div>
         <div

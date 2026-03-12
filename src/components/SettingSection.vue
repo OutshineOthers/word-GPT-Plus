@@ -1,9 +1,9 @@
 <template>
-  <div class="h-full w-full rounded-lg bg-bg-secondary p-0">
+  <div class="h-full w-full rounded-md bg-bg-secondary p-0">
     <div class="mb-2 flex items-start gap-2">
       <div
         v-if="icon"
-        class="mb-2 flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-accent text-white"
+        class="mb-2 flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-md bg-accent text-white"
       >
         <slot name="icon">
           <component :is="icon" :size="iconSize" />
