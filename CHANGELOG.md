@@ -1,3 +1,19 @@
+##  (2026-03-12)
+
+* :sparkles: Feature(custom): add light/dark/system theme switching 1d97e7d
+* :sparkles: Feature(custom): add theme selector in Settings > General tab with i18n support 1d97e7d
+* :sparkles: Feature(custom): dark mode adapted Toast component 1d97e7d
+* :hammer: Refactor(custom): extract Pinia stores (sessionStore, promptStore, toolPrefsStore) 1d97e7d
+* :hammer: Refactor(custom): extract composables (useMessageRenderer, useProviderConfig) 1d97e7d
+* :hammer: Refactor(custom): extract API services (chatService, agentService, providerRegistry) 1d97e7d
+* :hammer: Refactor(custom): refactor wordTools into categorized modules 1d97e7d
+* :sparkles: Feature(custom): add global error handler 1d97e7d
+* :white_check_mark: Test(custom): add vitest config and unit tests 1d97e7d
+* :construction_worker: CI(custom): add CI workflow 1d97e7d
+* :pencil: Docs(custom): add installation guide 1d97e7d
+
+
+
 ##  (2026-01-29)
 
 * :arrow_up: Upgrade(custom): upgrade deps to latest 5334b5d
