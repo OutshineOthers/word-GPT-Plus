@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 
 import type { SettingNames } from '@/utils/settingPreset'
 
-type SettingForm = { [K in SettingNames]: unknown }
+type SettingForm = Record<SettingNames, unknown>
 
 export function buildProviderConfig(settingForm: Ref<SettingForm>): Record<string, unknown> | undefined {
   const s = settingForm.value

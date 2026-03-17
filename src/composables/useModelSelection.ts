@@ -3,7 +3,7 @@ import { computed, type Ref } from 'vue'
 import { localStorageKey } from '@/utils/enum'
 import { getCustomModels, settingPreset } from '@/utils/settingPreset'
 
-type SettingForm = {
+interface SettingForm {
   api: string
   officialModelSelect: string
   geminiModelSelect: string
@@ -13,77 +13,73 @@ type SettingForm = {
   [key: string]: string | number | string[]
 }
 
+interface ModelConfig {
+  presetKey: keyof typeof settingPreset
+  customModelsKey: string
+  customModelOldKey: string
+  formField: keyof SettingForm
+  storageKey: string
+}
+
+const MODEL_CONFIG: Record<string, ModelConfig> = {
+  official: {
+    presetKey: 'officialModelSelect',
+    customModelsKey: localStorageKey.customModels,
+    customModelOldKey: localStorageKey.customModel,
+    formField: 'officialModelSelect',
+    storageKey: localStorageKey.model,
+  },
+  gemini: {
+    presetKey: 'geminiModelSelect',
+    customModelsKey: localStorageKey.geminiCustomModels,
+    customModelOldKey: localStorageKey.geminiCustomModel,
+    formField: 'geminiModelSelect',
+    storageKey: localStorageKey.geminiModel,
+  },
+  ollama: {
+    presetKey: 'ollamaModelSelect',
+    customModelsKey: localStorageKey.ollamaCustomModels,
+    customModelOldKey: localStorageKey.ollamaCustomModel,
+    formField: 'ollamaModelSelect',
+    storageKey: localStorageKey.ollamaModel,
+  },
+  groq: {
+    presetKey: 'groqModelSelect',
+    customModelsKey: localStorageKey.groqCustomModels,
+    customModelOldKey: localStorageKey.groqCustomModel,
+    formField: 'groqModelSelect',
+    storageKey: localStorageKey.groqModel,
+  },
+  azure: {
+    presetKey: 'officialModelSelect',
+    customModelsKey: '',
+    customModelOldKey: '',
+    formField: 'azureDeploymentName',
+    storageKey: localStorageKey.azureDeploymentName,
+  },
+}
+
 export function useModelSelection(settingForm: Ref<SettingForm>) {
   const currentModelOptions = computed(() => {
-    let presetOptions: string[] = []
-    let customModels: string[] = []
+    const cfg = MODEL_CONFIG[settingForm.value.api]
+    if (!cfg || settingForm.value.api === 'azure') return []
 
-    switch (settingForm.value.api) {
-      case 'official':
-        presetOptions = settingPreset.officialModelSelect.optionList || []
-        customModels = getCustomModels(localStorageKey.customModels, localStorageKey.customModel)
-        break
-      case 'gemini':
-        presetOptions = settingPreset.geminiModelSelect.optionList || []
-        customModels = getCustomModels(localStorageKey.geminiCustomModels, localStorageKey.geminiCustomModel)
-        break
-      case 'ollama':
-        presetOptions = settingPreset.ollamaModelSelect.optionList || []
-        customModels = getCustomModels(localStorageKey.ollamaCustomModels, localStorageKey.ollamaCustomModel)
-        break
-      case 'groq':
-        presetOptions = settingPreset.groqModelSelect.optionList || []
-        customModels = getCustomModels(localStorageKey.groqCustomModels, localStorageKey.groqCustomModel)
-        break
-      case 'azure':
-        return []
-      default:
-        return []
-    }
-
+    const presetOptions = settingPreset[cfg.presetKey]?.optionList || []
+    const customModels = getCustomModels(cfg.customModelsKey, cfg.customModelOldKey)
     return [...presetOptions, ...customModels]
   })
 
   const currentModelSelect = computed({
     get() {
-      switch (settingForm.value.api) {
-        case 'official':
-          return settingForm.value.officialModelSelect
-        case 'gemini':
-          return settingForm.value.geminiModelSelect
-        case 'ollama':
-          return settingForm.value.ollamaModelSelect
-        case 'groq':
-          return settingForm.value.groqModelSelect
-        case 'azure':
-          return settingForm.value.azureDeploymentName
-        default:
-          return ''
-      }
+      const cfg = MODEL_CONFIG[settingForm.value.api]
+      if (!cfg) return ''
+      return settingForm.value[cfg.formField] as string
     },
     set(value: string) {
-      switch (settingForm.value.api) {
-        case 'official':
-          settingForm.value.officialModelSelect = value
-          localStorage.setItem(localStorageKey.model, value)
-          break
-        case 'gemini':
-          settingForm.value.geminiModelSelect = value
-          localStorage.setItem(localStorageKey.geminiModel, value)
-          break
-        case 'ollama':
-          settingForm.value.ollamaModelSelect = value
-          localStorage.setItem(localStorageKey.ollamaModel, value)
-          break
-        case 'groq':
-          settingForm.value.groqModelSelect = value
-          localStorage.setItem(localStorageKey.groqModel, value)
-          break
-        case 'azure':
-          settingForm.value.azureDeploymentName = value
-          localStorage.setItem(localStorageKey.azureDeploymentName, value)
-          break
-      }
+      const cfg = MODEL_CONFIG[settingForm.value.api]
+      if (!cfg) return
+      settingForm.value[cfg.formField] = value
+      localStorage.setItem(cfg.storageKey, value)
     },
   })
 

@@ -1,3 +1,5 @@
+import { runWithSelection } from './helpers'
+
 const formatToolDefinitions: Record<string, WordToolDefinition> = {
   formatText: {
     name: 'formatText',
@@ -18,7 +20,7 @@ const formatToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: [],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { bold, italic, underline, fontSize, fontColor, highlightColor } = args as {
         bold?: boolean
         italic?: boolean
@@ -27,15 +29,14 @@ const formatToolDefinitions: Record<string, WordToolDefinition> = {
         fontColor?: string
         highlightColor?: string
       }
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+      return runWithSelection(async (ctx, range) => {
         if (bold !== undefined) range.font.bold = bold
         if (italic !== undefined) range.font.italic = italic
         if (underline !== undefined) range.font.underline = underline ? 'Single' : 'None'
         if (fontSize !== undefined) range.font.size = fontSize
         if (fontColor !== undefined) range.font.color = fontColor
         if (highlightColor !== undefined) range.font.highlightColor = highlightColor
-        await context.sync()
+        await ctx.sync()
         return 'Successfully applied formatting'
       })
     },
@@ -54,8 +55,13 @@ const formatToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['searchText', 'replaceText'],
     },
-    execute: async (args) => {
-      const { searchText, replaceText, matchCase = false, matchWholeWord = false } = args as {
+    execute: async args => {
+      const {
+        searchText,
+        replaceText,
+        matchCase = false,
+        matchWholeWord = false,
+      } = args as {
         searchText: string
         replaceText: string
         matchCase?: boolean
@@ -81,17 +87,15 @@ const formatToolDefinitions: Record<string, WordToolDefinition> = {
     name: 'clearFormatting',
     description: 'Clear all formatting from the selected text, returning it to default style.',
     inputSchema: { type: 'object', properties: {}, required: [] },
-    execute: async () => {
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+    execute: async () =>
+      runWithSelection(async (ctx, range) => {
         range.font.bold = false
         range.font.italic = false
         range.font.underline = 'None'
         range.styleBuiltIn = 'Normal'
-        await context.sync()
+        await ctx.sync()
         return 'Successfully cleared formatting'
-      })
-    },
+      }),
   },
 
   setFontName: {
@@ -107,12 +111,11 @@ const formatToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['fontName'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { fontName } = args as { fontName: string }
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+      return runWithSelection(async (ctx, range) => {
         range.font.name = fontName
-        await context.sync()
+        await ctx.sync()
         return `Successfully set font to ${fontName}`
       })
     },

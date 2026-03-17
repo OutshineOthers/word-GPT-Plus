@@ -4,7 +4,6 @@
  */
 export {
   createWordTools,
-  getWordTool,
   getWordToolDefinitions,
   wordToolDefinitions,
   type WordToolName,

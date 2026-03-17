@@ -1,3 +1,5 @@
+import { normalizeBookmarkName, runWithSelection } from './helpers'
+
 const writeToolDefinitions: Record<string, WordToolDefinition> = {
   insertText: {
     name: 'insertText',
@@ -14,12 +16,11 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['text'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { text, location = 'End' } = args as { text: string; location?: string }
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+      return runWithSelection(async (ctx, range) => {
         range.insertText(text, location as Word.InsertLocation)
-        await context.sync()
+        await ctx.sync()
         return `Successfully inserted text at ${location}`
       })
     },
@@ -35,12 +36,11 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['newText'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { newText } = args as { newText: string }
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+      return runWithSelection(async (ctx, range) => {
         range.insertText(newText, 'Replace')
-        await context.sync()
+        await ctx.sync()
         return 'Successfully replaced selected text'
       })
     },
@@ -56,7 +56,7 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['text'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { text } = args as { text: string }
       return Word.run(async context => {
         context.document.body.insertText(text, 'End')
@@ -82,12 +82,22 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
         style: {
           type: 'string',
           description: 'Optional Word built-in style: Normal, Heading1, Heading2, Heading3, Quote, etc.',
-          enum: ['Normal', 'Heading1', 'Heading2', 'Heading3', 'Heading4', 'Quote', 'IntenseQuote', 'Title', 'Subtitle'],
+          enum: [
+            'Normal',
+            'Heading1',
+            'Heading2',
+            'Heading3',
+            'Heading4',
+            'Quote',
+            'IntenseQuote',
+            'Title',
+            'Subtitle',
+          ],
         },
       },
       required: ['text'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { text, location = 'After', style } = args as { text: string; location?: string; style?: string }
       return Word.run(async context => {
         let paragraph
@@ -122,7 +132,7 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['rows', 'columns'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { rows, columns, data } = args as { rows: number; columns: number; data?: string[][] }
       return Word.run(async context => {
         const range = context.document.getSelection()
@@ -150,7 +160,7 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['items', 'listType'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { items, listType } = args as { items: string[]; listType: string }
       return Word.run(async context => {
         const range = context.document.getSelection()
@@ -183,7 +193,7 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: [],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { direction = 'After' } = args as { direction?: string }
       return Word.run(async context => {
         const range = context.document.getSelection()
@@ -215,7 +225,7 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: [],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { location = 'After' } = args as { location?: string }
       return Word.run(async context => {
         const range = context.document.getSelection()
@@ -248,8 +258,13 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['image'],
     },
-    execute: async (args) => {
-      const { image, width, height, location = 'After' } = args as {
+    execute: async args => {
+      const {
+        image,
+        width,
+        height,
+        location = 'After',
+      } = args as {
         image: string
         width?: number
         height?: number
@@ -289,16 +304,15 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['name'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { name } = args as { name: string }
-      return Word.run(async context => {
-        const range = context.document.getSelection()
-        const bookmarkName = name.replace(/\s+/g, '_')
+      return runWithSelection(async (ctx, range) => {
+        const bookmarkName = normalizeBookmarkName(name)
         const contentControl = range.insertContentControl()
         contentControl.tag = `bookmark_${bookmarkName}`
         contentControl.title = bookmarkName
         contentControl.appearance = 'Tags'
-        await context.sync()
+        await ctx.sync()
         return `Successfully inserted bookmark: ${bookmarkName}`
       })
     },
@@ -321,8 +335,12 @@ const writeToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['title'],
     },
-    execute: async (args) => {
-      const { title, tag, appearance = 'BoundingBox' } = args as {
+    execute: async args => {
+      const {
+        title,
+        tag,
+        appearance = 'BoundingBox',
+      } = args as {
         title: string
         tag?: string
         appearance?: string

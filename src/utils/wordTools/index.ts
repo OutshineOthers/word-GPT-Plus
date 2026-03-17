@@ -99,8 +99,4 @@ export function getWordToolDefinitions(): WordToolDefinition[] {
   return Object.values(wordToolDefinitions)
 }
 
-export function getWordTool(name: WordToolName): WordToolDefinition | undefined {
-  return wordToolDefinitions[name]
-}
-
 export { wordToolDefinitions }

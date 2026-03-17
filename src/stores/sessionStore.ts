@@ -1,9 +1,9 @@
-import { AIMessage, HumanMessage, Message, SystemMessage } from '@langchain/core/messages'
+import { type Message, SystemMessage } from '@langchain/core/messages'
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, ref, shallowRef, triggerRef } from 'vue'
 
-import { type CheckpointTuple, IndexedDBSaver } from '@/api/checkpoints'
+import { fetchCheckpointHistory, getSessionSaver } from '@/api/sessionApi'
 
 export const useSessionStore = defineStore('session', () => {
   const threadId = ref(localStorage.getItem('threadId') || uuidv4())
@@ -15,7 +15,7 @@ export const useSessionStore = defineStore('session', () => {
   const errorIssue = ref<boolean | string | null>(false)
   const initError = ref<Error | null>(null)
 
-  const saver = new IndexedDBSaver()
+  const saver = getSessionSaver()
 
   const displayHistory = computed(() => history.value.filter(msg => !(msg instanceof SystemMessage)))
 
@@ -23,19 +23,13 @@ export const useSessionStore = defineStore('session', () => {
     localStorage.setItem('threadId', threadId.value)
   }
 
-  function persistMode() {
-    localStorage.setItem('chatMode', mode.value)
-  }
-
   function setMode(newMode: 'ask' | 'agent') {
     mode.value = newMode
-    persistMode()
+    localStorage.setItem('chatMode', newMode)
   }
 
   function startNewChat() {
-    if (loading.value) {
-      stopGeneration()
-    }
+    if (loading.value) stopGeneration()
     history.value = []
     threadId.value = uuidv4()
     currentCheckpointId.value = ''
@@ -76,16 +70,14 @@ export const useSessionStore = defineStore('session', () => {
   function getLastMessageText(): string {
     const last = history.value[history.value.length - 1]
     if (!last) return ''
-    const content = (last as unknown as { content: unknown }).content
+    const content = (last as { content: unknown }).content
     if (typeof content === 'string') return content
     if (Array.isArray(content)) {
       return content
         .map((part: unknown) => {
           if (typeof part === 'string') return part
-          if (part && typeof part === 'object' && 'text' in part && typeof (part as { text: string }).text === 'string')
-            return (part as { text: string }).text
-          if (part && typeof part === 'object' && 'data' in part && typeof (part as { data: string }).data === 'string')
-            return (part as { data: string }).data
+          if (part && typeof part === 'object' && 'text' in part) return String((part as { text: string }).text)
+          if (part && typeof part === 'object' && 'data' in part) return String((part as { data: string }).data)
           return ''
         })
         .join('')
@@ -94,54 +86,15 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   async function handleRestore(checkpointId: string) {
-    currentCheckpointId.value = checkpointId
-
-    const checkpointTuple = await saver.getTuple({
-      configurable: { thread_id: threadId.value, checkpoint_id: checkpointId },
-    })
-
-    if (checkpointTuple) {
-      const messages = checkpointTuple.checkpoint.channel_values.messages
-      if (messages && Array.isArray(messages)) {
-        history.value = messages
-          .filter((msg: { type: string }) => ['human', 'ai'].includes(msg.type))
-          .map((msg: { type: string; content: string }) =>
-            msg.type === 'human' ? new HumanMessage(msg.content) : new AIMessage(msg.content),
-          )
-      }
-    }
+    const result = await fetchCheckpointHistory(threadId.value, checkpointId)
+    history.value = result.messages
+    currentCheckpointId.value = result.checkpointId
   }
 
   async function loadThreadHistory(targetThreadId: string) {
-    const checkpoints: CheckpointTuple[] = []
-    const iterator = saver.list({
-      configurable: { thread_id: targetThreadId },
-    })
-
-    for await (const checkpoint of iterator) {
-      checkpoints.push(checkpoint)
-    }
-
-    if (checkpoints.length > 0) {
-      checkpoints.sort((a, b) => (a.metadata?.step ?? 0) - (b.metadata?.step ?? 0))
-
-      const latestCheckpoint = checkpoints[checkpoints.length - 1]
-      const messages = latestCheckpoint.checkpoint.channel_values.messages
-      if (messages && Array.isArray(messages)) {
-        history.value = messages
-          .filter((msg: { type: string }) => ['human', 'ai'].includes(msg.type))
-          .map((msg: { type: string; content: string }) =>
-            msg.type === 'human' ? new HumanMessage(msg.content) : new AIMessage(msg.content),
-          )
-        currentCheckpointId.value = latestCheckpoint.config.configurable?.checkpoint_id || ''
-      } else {
-        history.value = []
-        currentCheckpointId.value = ''
-      }
-    } else {
-      history.value = []
-      currentCheckpointId.value = ''
-    }
+    const result = await fetchCheckpointHistory(targetThreadId)
+    history.value = result.messages
+    currentCheckpointId.value = result.checkpointId
   }
 
   async function handleSelectThread(newThreadId: string) {

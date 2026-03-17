@@ -1,3 +1,5 @@
+import { normalizeBookmarkName } from './helpers'
+
 const navigationToolDefinitions: Record<string, WordToolDefinition> = {
   selectText: {
     name: 'selectText',
@@ -9,7 +11,7 @@ const navigationToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['scope'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { scope } = args as { scope: string }
       return Word.run(async context => {
         if (scope === 'All') {
@@ -32,10 +34,10 @@ const navigationToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['name'],
     },
-    execute: async (args) => {
+    execute: async args => {
       const { name } = args as { name: string }
       return Word.run(async context => {
-        const bookmarkName = name.replace(/\s+/g, '_')
+        const bookmarkName = normalizeBookmarkName(name)
         const contentControls = context.document.contentControls
         contentControls.load(['items'])
         await context.sync()

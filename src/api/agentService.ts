@@ -1,93 +1,57 @@
-import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
-import { createAgent } from 'langchain'
-
-import { getCheckpointer } from './checkpointRuntime'
-import { createModel } from './providerRegistry'
+import { buildModel, executeStream } from './streamCore'
 import type { AgentOptions } from './types'
 
 interface AgentMessage {
   _getType?: () => string
   content?: string | unknown[]
-  tool_calls?: Array<{ name: string; args: Record<string, unknown> }>
+  tool_calls?: { name: string; args: Record<string, unknown> }[]
   name?: string
 }
 
-async function executeAgentFlow(model: BaseChatModel, options: AgentOptions): Promise<void> {
-  try {
-    if (!options.threadId) {
-      options.threadId = crypto.randomUUID()
-    }
-
-    const agent = createAgent({
-      model,
-      tools: options.tools || [],
-      checkpointer: getCheckpointer(),
-    })
-
-    const stream = await agent.stream(
-      { messages: options.messages },
-      {
-        recursionLimit: Number(options.recursionLimit),
-        signal: options.abortSignal,
-        configurable: {
-          thread_id: options.threadId,
-          checkpoint_id: options.checkpointId,
-        },
-        streamMode: 'values',
-      },
-    )
-
-    let fullContent = ''
-
-    for await (const step of stream) {
-      if (options.abortSignal?.aborted) break
-
-      const messages: AgentMessage[] = step.messages || []
-      const lastMessage = messages[messages.length - 1]
-      if (!lastMessage) continue
-
-      const msg = lastMessage
-
-      if (msg._getType?.() === 'ai' && msg.tool_calls?.length) {
-        for (const toolCall of msg.tool_calls) {
-          options.onToolCall?.(toolCall.name, toolCall.args)
-        }
-      }
-
-      if (msg._getType?.() === 'tool') {
-        const toolName = msg.name || 'unknown'
-        const toolContent = String(msg.content || '')
-        options.onToolResult?.(toolName, toolContent)
-      }
-
-      if (msg._getType?.() === 'ai' && msg.content) {
-        const content = typeof msg.content === 'string' ? msg.content : ''
-        if (content && (!msg.tool_calls || msg.tool_calls.length === 0)) {
-          fullContent = content
-          options.onStream(fullContent)
-        }
-      }
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError' || options.abortSignal?.aborted) {
-        throw error
-      }
-      if (error.name === 'GraphRecursionError') {
-        options.errorIssue.value = 'recursionLimitExceeded'
-      } else {
-        options.errorIssue.value = error.message || true
-      }
-    } else {
-      options.errorIssue.value = true
-    }
-    console.error('[agentService]', error)
-  } finally {
-    options.loading.value = false
-  }
-}
-
 export async function getAgentResponse(options: AgentOptions): Promise<void> {
-  const model = createModel(options.provider, options as unknown as Record<string, unknown>)
-  return executeAgentFlow(model, options)
+  const model = buildModel(options.provider, options as unknown as Record<string, unknown>)
+
+  return executeStream(
+    model,
+    {
+      messages: options.messages,
+      errorIssue: options.errorIssue,
+      loading: options.loading,
+      abortSignal: options.abortSignal,
+      threadId: options.threadId,
+      onStream: options.onStream,
+    },
+    {
+      tools: options.tools,
+      streamMode: 'values',
+      recursionLimit: options.recursionLimit,
+      checkpointId: options.checkpointId,
+      onToolCall: options.onToolCall,
+      onToolResult: options.onToolResult,
+      processChunk(chunk) {
+        const messages: AgentMessage[] = (chunk as { messages?: AgentMessage[] }).messages ?? []
+        const lastMessage = messages[messages.length - 1]
+        if (!lastMessage) return ''
+
+        if (lastMessage._getType?.() === 'ai' && lastMessage.tool_calls?.length) {
+          for (const toolCall of lastMessage.tool_calls) {
+            options.onToolCall?.(toolCall.name, toolCall.args)
+          }
+        }
+
+        if (lastMessage._getType?.() === 'tool') {
+          options.onToolResult?.(lastMessage.name ?? 'unknown', String(lastMessage.content ?? ''))
+        }
+
+        if (lastMessage._getType?.() === 'ai' && lastMessage.content) {
+          const content = typeof lastMessage.content === 'string' ? lastMessage.content : ''
+          if (content && (!lastMessage.tool_calls || lastMessage.tool_calls.length === 0)) {
+            return content
+          }
+        }
+
+        return ''
+      },
+    },
+  )
 }

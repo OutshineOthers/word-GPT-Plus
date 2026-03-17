@@ -79,7 +79,6 @@ export class IndexedDBSaver extends BaseCheckpointSaver {
       }
 
       if (!row) {
-        console.log('[IndexedDBSaver] getTuple: no checkpoint found')
         return undefined
       }
 
@@ -143,8 +142,6 @@ export class IndexedDBSaver extends BaseCheckpointSaver {
 
       const checkpoint_id = config.configurable?.checkpoint_id || checkpoint.id || crypto.randomUUID()
 
-      console.log('[IndexedDBSaver] put:', { thread_id, checkpoint_id })
-
       await db.checkpoints.put({
         thread_id,
         checkpoint_id,
@@ -165,7 +162,7 @@ export class IndexedDBSaver extends BaseCheckpointSaver {
     }
   }
 
-  async putWrites(config: RunnableConfig, writes: [string, any][], taskId: string): Promise<void> {
+  async putWrites(config: RunnableConfig, writes: [string, unknown][], taskId: string): Promise<void> {
     try {
       if (!config.configurable?.thread_id) {
         throw new Error('thread_id is required in config.configurable')

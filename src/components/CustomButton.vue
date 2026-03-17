@@ -38,7 +38,7 @@ const {
   textClass = '',
 } = defineProps<{
   text: string
-  icon?: any
+  icon?: object | null
   active?: boolean
   iconSize?: number
   disabled?: boolean

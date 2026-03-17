@@ -1,6 +1,7 @@
+import type { App } from 'vue'
 import { createApp } from 'vue'
 
-import Message from '@/components/Message.vue'
+import Message from '@/components/Toast.vue'
 
 interface MessageOptions {
   message: string
@@ -8,7 +9,7 @@ interface MessageOptions {
   duration?: number
 }
 
-let messageInstance: any = null
+let messageInstance: App | null = null
 
 function showMessage(options: MessageOptions) {
   if (messageInstance) {

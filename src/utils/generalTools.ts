@@ -178,7 +178,3 @@ export function createGeneralTools(enabledTools?: GeneralToolName[]): DynamicStr
 export function getGeneralToolDefinitions(): GeneralToolDefinition[] {
   return generalToolDefinitions
 }
-
-export function getGeneralTool(name: GeneralToolName): GeneralToolDefinition | undefined {
-  return generalToolDefinitions.find(def => def.name === name)
-}

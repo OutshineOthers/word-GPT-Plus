@@ -1,44 +1,41 @@
+import { runWithBody, runWithSelection, searchInDocument } from './helpers'
+
 const readToolDefinitions: Record<string, WordToolDefinition> = {
   getSelectedText: {
     name: 'getSelectedText',
     description:
       'Get the currently selected text in the Word document. Returns the selected text or empty string if nothing is selected.',
     inputSchema: { type: 'object', properties: {}, required: [] },
-    execute: async () => {
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+    execute: async () =>
+      runWithSelection(async (_ctx, range) => {
         range.load('text')
-        await context.sync()
+        await _ctx.sync()
         return range.text || ''
-      })
-    },
+      }),
   },
 
   getDocumentContent: {
     name: 'getDocumentContent',
     description: 'Get the full content of the Word document body as plain text.',
     inputSchema: { type: 'object', properties: {}, required: [] },
-    execute: async () => {
-      return Word.run(async context => {
-        const body = context.document.body
+    execute: async () =>
+      runWithBody(async (ctx, body) => {
         body.load('text')
-        await context.sync()
+        await ctx.sync()
         return body.text || ''
-      })
-    },
+      }),
   },
 
   getDocumentProperties: {
     name: 'getDocumentProperties',
     description: 'Get document properties including paragraph count, word count, and character count.',
     inputSchema: { type: 'object', properties: {}, required: [] },
-    execute: async () => {
-      return Word.run(async context => {
-        const body = context.document.body
+    execute: async () =>
+      runWithBody(async (ctx, body) => {
         body.load(['text'])
         const paragraphs = body.paragraphs
         paragraphs.load('items')
-        await context.sync()
+        await ctx.sync()
 
         const text = body.text || ''
         const wordCount = text.split(/\s+/).filter(word => word.length > 0).length
@@ -48,17 +45,15 @@ const readToolDefinitions: Record<string, WordToolDefinition> = {
           null,
           2,
         )
-      })
-    },
+      }),
   },
 
   getRangeInfo: {
     name: 'getRangeInfo',
     description: 'Get detailed information about the current selection including text, formatting, and position.',
     inputSchema: { type: 'object', properties: {}, required: [] },
-    execute: async () => {
-      return Word.run(async context => {
-        const range = context.document.getSelection()
+    execute: async () =>
+      runWithSelection(async (ctx, range) => {
         range.load([
           'text',
           'style',
@@ -69,7 +64,7 @@ const readToolDefinitions: Record<string, WordToolDefinition> = {
           'font/underline',
           'font/color',
         ])
-        await context.sync()
+        await ctx.sync()
 
         return JSON.stringify(
           {
@@ -87,24 +82,23 @@ const readToolDefinitions: Record<string, WordToolDefinition> = {
           null,
           2,
         )
-      })
-    },
+      }),
   },
 
   getTableInfo: {
     name: 'getTableInfo',
     description: 'Get information about tables in the document, including row and column counts.',
     inputSchema: { type: 'object', properties: {}, required: [] },
-    execute: async () => {
-      return Word.run(async context => {
-        const tables = context.document.body.tables
+    execute: async () =>
+      runWithBody(async (ctx, body) => {
+        const tables = body.tables
         tables.load(['items'])
-        await context.sync()
+        await ctx.sync()
 
         for (const table of tables.items) {
           table.load(['rowCount', 'values'])
         }
-        await context.sync()
+        await ctx.sync()
 
         const tableInfos = tables.items.map((table, i) => {
           const columnCount = table.values && table.values[0] ? table.values[0].length : 0
@@ -112,8 +106,7 @@ const readToolDefinitions: Record<string, WordToolDefinition> = {
         })
 
         return JSON.stringify({ tableCount: tables.items.length, tables: tableInfos }, null, 2)
-      })
-    },
+      }),
   },
 
   findText: {
@@ -128,23 +121,14 @@ const readToolDefinitions: Record<string, WordToolDefinition> = {
       },
       required: ['searchText'],
     },
-    execute: async (args) => {
-      const { searchText, matchCase = false, matchWholeWord = false } = args as {
+    execute: async args => {
+      const { searchText, matchCase, matchWholeWord } = args as {
         searchText: string
         matchCase?: boolean
         matchWholeWord?: boolean
       }
-      return Word.run(async context => {
-        const body = context.document.body
-        const searchResults = body.search(searchText, { matchCase, matchWholeWord })
-        searchResults.load(['items'])
-        await context.sync()
-        return JSON.stringify(
-          { searchText, matchCount: searchResults.items.length, found: searchResults.items.length > 0 },
-          null,
-          2,
-        )
-      })
+      const { count } = await searchInDocument(searchText, { matchCase, matchWholeWord })
+      return JSON.stringify({ searchText, matchCount: count, found: count > 0 }, null, 2)
     },
   },
 }

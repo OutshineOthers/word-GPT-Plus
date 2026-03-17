@@ -1,18 +1,10 @@
-import { Ref } from 'vue'
+import type { Ref } from 'vue'
+
+type HeadingStyle = 'heading1' | 'heading2' | 'heading3' | 'heading4' | 'heading5' | 'heading6'
 
 interface FormatPart {
   text: string
-  style?:
-    | 'bold'
-    | 'italic'
-    | 'heading1'
-    | 'heading2'
-    | 'heading3'
-    | 'heading4'
-    | 'heading5'
-    | 'heading6'
-    | 'code'
-    | 'quote'
+  style?: 'bold' | 'italic' | HeadingStyle | 'code' | 'quote'
   listType?: 'bullet' | 'number'
   listLevel?: number
 }
@@ -52,7 +44,7 @@ class WordFormatter {
         const text = headingMatch[2]
         parts.push({
           text,
-          style: `heading${level}` as any,
+          style: `heading${level}` as HeadingStyle,
         })
         continue
       }
@@ -162,7 +154,7 @@ class WordFormatter {
     return parts
   }
 
-  static async insertFormattedResult(result: string, insertType: Ref): Promise<void> {
+  static async insertFormattedResult(result: string, insertType: Ref<string>): Promise<void> {
     const content = result
     if (!content || typeof content !== 'string') return
 
@@ -242,7 +234,7 @@ class WordFormatter {
     })
   }
 
-  static async insertPlainResult(result: string, insertType: Ref): Promise<void> {
+  static async insertPlainResult(result: string, insertType: Ref<string>): Promise<void> {
     const paragraph = result.replace(/\n+/g, '\n').replace(/\r+/g, '\n').split('\n')
 
     switch (insertType.value) {

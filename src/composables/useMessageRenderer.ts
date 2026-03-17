@@ -9,7 +9,7 @@ export interface RenderSegment {
 }
 
 export function getMessageText(msg: Message): string {
-  const content = (msg as unknown as { content: unknown }).content
+  const content = (msg as { content: unknown }).content
   if (typeof content === 'string') return content
   if (Array.isArray(content)) {
     return content

@@ -1,8 +1,6 @@
 <template>
   <div class="flex h-full w-full flex-col gap-2 overflow-hidden bg-bg-secondary p-2">
-    <div
-      class="flex shrink-0 items-center gap-2.5 rounded-md border-b border-b-border bg-bg-secondary px-4 py-2"
-    >
+    <div class="flex shrink-0 items-center gap-2.5 rounded-md border-b border-b-border bg-bg-secondary px-4 py-2">
       <CustomButton text="" :icon="ArrowLeft" type="secondary" class="border-none p-1!" @click="backToHome" />
       <h2 class="text-sm font-semibold text-main">
         {{ t('checkPoints') }}
@@ -149,7 +147,7 @@ const loadAllSessions = async () => {
 
       interface CheckpointMessage {
         _getType: () => 'ai' | 'human' | 'tool'
-        content: string | any
+        content: string | { text?: string }[]
         tool_calls?: { name: string }[]
       }
 
@@ -161,7 +159,7 @@ const loadAllSessions = async () => {
       if (typeof lastMsg.content === 'string') {
         previewText = lastMsg.content
       } else if (Array.isArray(lastMsg.content)) {
-        previewText = lastMsg.content.map((c: any) => c.text || '').join(' ')
+        previewText = lastMsg.content.map((c: { text?: string }) => c.text || '').join(' ')
       }
 
       previewText = previewText.slice(0, 100) + (previewText.length > 100 ? '...' : '')
